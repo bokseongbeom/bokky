@@ -1,6 +1,6 @@
 #include <stdio.h>
 int main () {
-  printf("<h1>Hello, F</h1>\n");
+  printf("<h1>Hello, Fanboy</h1>\n");
   return 0;
 }
 // test
