@@ -7,6 +7,16 @@ import collections
 import folium
 import openpyxl
 
+
+'''
+dataframe 출력 옵션
+'''
+
+pd.set_option('display.max_rows', 500)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
+
+
 class KakaoLocalAPI:
     """
     Kakao Local API 컨트롤러
@@ -58,8 +68,20 @@ query = '순두부'
 kakao = KakaoLocalAPI()
 df = pd.json_normalize(kakao.search_keyword(query, x = 127, y = 37.5, page = 1, offset = 0.5 )['documents'])
 df1 = pd.json_normalize(kakao.search_keyword(query, x = 127, y = 36.5, page = 1, offset = 0.5 )['documents'])
-MergedDF = df.append(df1, ignore_index=True)
-print(MergedDF)
+df = df.append(df1, ignore_index=True)
+
+'''
+dataframe 전처리
+'''
+df.drop(columns=['category_group_code', 'category_group_name', 'distance'], axis=1, inplace=True)
+
+
+df = df.rename(columns={'address_name': 'lc_addr',  'category_group_name': 'cs_activity'
+                , 'category_name': 'cs_activity', 'id': 'lc_id', 'phone': 'lc_call_number', 'place_name': 'lc_name',
+                   'place_url': 'lc_url', 'road_address_name': 'lc_addr_road', 'x': 'lc_x', 'y': 'lc_y'})
+
+df = df.reindex(columns=['lc_id','lc_name','lc_addr','lc_addr_road','lc_x', 'lc_y', 'lc_call_number', 'lc_url', 'cs_activity'])
+print(df)
 
 
 #df.append(pd.read_json(self.search_keyword(query, x, y, offset= abc, page=page)))
