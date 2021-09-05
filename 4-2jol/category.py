@@ -5,12 +5,6 @@ import json
 import pandas as pd
 from pandas import json_normalize
 
-import collections
-import folium
-import openpyxl
-
-#sql = f"REPLACE INTO company_info (code, company, last_update) VALUES ('{code}','{company}','{today}')"
-
 '''
 dataframe 출력 옵션
 '''
@@ -35,7 +29,10 @@ class KakaoLocalAPI:
         with self.conn.cursor() as curs:
             sql = """
             CREATE TABLE IF NOT EXISTS category_info (
-                category VARCHAR(50),
+                category VARCHAR(40),
+                cl_activity VARCHAR(40), 
+                cm_activity VARCHAR(40), 
+                cs_activity VARCHAR(40),
                 PRIMARY KEY (category))
             """
             curs.execute(sql)
@@ -127,37 +124,39 @@ class KakaoLocalAPI:
         cs_activity = s.str[2]
         cm_activity = s.str[1]
         cl_activity = s.str[0]
-        activity = s.str[-1]
+        category = s.str[-1]
 
         df['cs_activity'] = cs_activity
         df['cm_activity'] = cm_activity
         df['cl_activity'] = cl_activity
-        df['activity'] = activity
+        df['category'] = category
 
         df.drop(columns=['category_group_code', 'category_group_name', 'distance'], axis=1, inplace=True)
 
-        df = df.reindex(
-            columns=['cs_activity', 'cm_activity', 'cl_activity'])
+        df = df.reindex(columns=['cl_activity', 'cm_activity', 'cs_activity', 'category'])
         df = df.drop_duplicates()
 
         return df
 
-    def replace_into_db(self, df, num, code, company):
+    def replace_into_db(self, df):
         """검색된 activity db에 REPLACE"""
         with self.conn.cursor() as curs:
-            for r in df.itertuples():
-                sql = f"REPLACE INTO daily_price VALUES ('{r.lc_id}', " \
-                      f"'{r.lc_name}', {r.lc_addr}, {r.lc_addr_road}, {r.lc_x}, {r.lc_y}, " \
-                      f"{r.lc_call_number}, {r.lc_url}, {r.cl_activity}, {r.cm_activity}, {r.cs_activity})"
+            for idx in range(len(df)):
+                category = df.category.values[idx]
+                cl_activity = df.cl_activity.values[idx]
+                cm_activity = df.cm_activity.values[idx]
+                cs_activity = df.cs_activity.values[idx]
+                sql = f"REPLACE INTO category_info (category, cl_activity, cm_activity, " \
+                      f"cs_activity)VALUES ('{category}', '{cl_activity}', " \
+                      f"'{cm_activity}', '{cs_activity}')"
                 curs.execute(sql)
             self.conn.commit()
-            print('[{}] #{:04d} {} ({}) : {} rows > REPLACE INTO daily_' \
-                  'price [OK]'.format(datetime.now().strftime('%Y-%m-%d' \
-                                                              ' %H:%M'), num + 1, company, code, len(df)))
 
 
-# 함수 실행
+
+            # 함수 실행
 query = '관광명소'
 kakao = KakaoLocalAPI()
 df = kakao.search_all(query)
 print(df)
+kakao.replace_into_db(df)
