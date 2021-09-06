@@ -1,5 +1,4 @@
 import requests
-from datetime import datetime
 import pymysql, calendar, time, json
 import json
 import pandas as pd
@@ -37,8 +36,22 @@ class KakaoLocalAPI:
             """
             curs.execute(sql)
 
+            sql = """
+            CREATE TABLE IF NOT EXISTS location (
+                lc_id varchar(16),
+                lc_name varchar(40) ,
+                lc_addr varchar(45) ,
+                lc_addr_road varchar(45) ,
+                lc_x varchar(45) ,
+                lc_y varchar(45) ,
+                lc_call_number varchar(45) ,
+                lc_url varchar(80) ,
+                lc_category varchar(45),
+                PRIMARY KEY (lc_id),
+                FOREIGN KEY (lc_category) REFERENCES category_info (category))
+            """
+            curs.execute(sql)
         self.conn.commit()
-        self.codes = dict()
 
         # REST API 키 설정
         self.rest_api_key = "fdc883fda0ab9f3e7a2bec429fc989ae"
@@ -110,10 +123,12 @@ class KakaoLocalAPI:
         # 126 - 128 36.5 - 38.5 경기 지역
         x = 126
         df = pd.DataFrame()
+        dfa = pd.DataFrame()
+        dfb = pd.DataFrame()
 
-        for j in range(1, 2):
+        for j in range(1, 3):
             y = 36.5
-            for k in range(1, 2): # 바로바꿔용 3 으로 둘다!!!
+            for k in range(1, 3): # 바로바꿔용 3 으로 둘다!!!
                 print(x, y)
                 df = df.append(self.get_keyword_list(query, x, y, offset=0.5))
                 y += 0.5
@@ -131,12 +146,19 @@ class KakaoLocalAPI:
         df['cl_activity'] = cl_activity
         df['category'] = category
 
-        df.drop(columns=['category_group_code', 'category_group_name', 'distance'], axis=1, inplace=True)
+        df.drop(columns=['category_group_name', 'distance'], axis=1, inplace=True)
+        df = df.rename(columns={'address_name': 'lc_addr', 'category_group_name': 'cs_activity',
+                                'id': 'lc_id', 'phone': 'lc_call_number', 'place_name': 'lc_name',
+                                'place_url': 'lc_url', 'road_address_name': 'lc_addr_road',
+                                'x': 'lc_x', 'y': 'lc_y'})
 
-        df = df.reindex(columns=['cl_activity', 'cm_activity', 'cs_activity', 'category'])
-        df = df.drop_duplicates()
+        dfa = df.reindex(columns=['category_group_code', 'cl_activity', 'cm_activity', 'cs_activity', 'category'])
+        dfb = df.reindex(columns=['lc_id', 'lc_name', 'lc_addr', 'lc_addr_road', 'lc_x', 'lc_y', 'lc_call_number',
+                                  'lc_url', 'category'])
+        dfa = df.drop_duplicates()
+        dfb = df.drop_duplicates()
 
-        return df
+        return dfa, dfb
 
     def replace_into_db(self, df):
         """검색된 activity db에 REPLACE"""
@@ -152,11 +174,30 @@ class KakaoLocalAPI:
                 curs.execute(sql)
             self.conn.commit()
 
+    def replace_into_db2(self, df):
+        """검색된 activity db에 REPLACE"""
+        with self.conn.cursor() as curs:
+            for idx in range(len(df)):
+                lc_id = df.lc_id.values[idx]
+                lc_name = df.lc_name.values[idx]
+                lc_addr = df.lc_addr.values[idx]
+                lc_addr_road = df.lc_addr_road.values[idx]
+                lc_x = df.lc_x.values[idx]
+                lc_y = df.lc_y.values[idx]
+                lc_call_number = df.lc_call_number.values[idx]
+                lc_url = df.lc_url.values[idx]
+                lc_category = df.category.values[idx]
+
+                sql = f"REPLACE INTO location (lc_id, lc_name, lc_addr, lc_addr_road, lc_x, lc_y, lc_call_number," \
+                      f" lc_url, lc_category)VALUES ('{lc_id}', '{lc_name}', '{lc_addr}', '{lc_addr_road}', '{lc_x}', " \
+                      f"'{lc_y}', '{lc_call_number}', '{lc_url}', '{lc_category}')"
+                curs.execute(sql)
+            self.conn.commit()
 
 
-            # 함수 실행
-query = '관광명소'
+# 함수 실행
+query = '스포츠'
 kakao = KakaoLocalAPI()
-df = kakao.search_all(query)
-print(df)
-kakao.replace_into_db(df)
+dfa, dfb = kakao.search_all(query)
+kakao.replace_into_db(dfa)
+kakao.replace_into_db2(dfb)
