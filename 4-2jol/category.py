@@ -37,7 +37,7 @@ class KakaoLocalAPI:
             curs.execute(sql)
 
             sql = """
-            CREATE TABLE IF NOT EXISTS location_new (
+            CREATE TABLE IF NOT EXISTS location (
                 lc_id varchar(16),
                 lc_name varchar(40) ,
                 lc_addr varchar(45) ,
@@ -48,8 +48,7 @@ class KakaoLocalAPI:
                 lc_url varchar(80) ,
                 lc_category varchar(45),
                 PRIMARY KEY (lc_id),
-                FOREIGN KEY (lc_category) REFERENCES category_info (category) 
-                ON UPDATE CASCADE ON DELETE CASCADE);
+                FOREIGN KEY (lc_category) REFERENCES category_info (category) ON UPDATE CASCADE ON DELETE CASCADE);
             """
             curs.execute(sql)
         self.conn.commit()
@@ -129,7 +128,7 @@ class KakaoLocalAPI:
 
         for j in range(1, 3):
             y = 36.5
-            for k in range(1, 2): # 바로바꿔용 3 으로 둘다!!!
+            for k in range(1, 3): # 바로바꿔용 3 으로 둘다!!!
                 print(x, y)
                 df = df.append(self.get_keyword_list(query, x, y, offset=0.5))
                 y += 0.5
@@ -137,6 +136,7 @@ class KakaoLocalAPI:
 
         '''전처리'''
         s = df['category_name'].str.split(">")
+        df["place_name"] = df["place_name"].str.replace(pat=r'[^\w]', repl=r'', regex=True)
         cs_activity = s.str[2]
         cm_activity = s.str[1]
         cl_activity = s.str[0]
@@ -189,16 +189,18 @@ class KakaoLocalAPI:
                 lc_url = df.lc_url.values[idx]
                 lc_category = df.category.values[idx]
 
-                sql = f"REPLACE INTO location_new (lc_id, lc_name, lc_addr, lc_addr_road, lc_x, lc_y, lc_call_number," \
+                sql = f"REPLACE INTO location (lc_id, lc_name, lc_addr, lc_addr_road, lc_x, lc_y, lc_call_number," \
                       f" lc_url, lc_category)VALUES ('{lc_id}', '{lc_name}', '{lc_addr}', '{lc_addr_road}', '{lc_x}', " \
                       f"'{lc_y}', '{lc_call_number}', '{lc_url}', '{lc_category}')"
                 curs.execute(sql)
             self.conn.commit()
 
 
+
 # 함수 실행
 query = '음식점'
 kakao = KakaoLocalAPI()
 dfa, dfb = kakao.search_all(query)
+print(dfb)
 kakao.replace_into_db(dfa)
 kakao.replace_into_db2(dfb)
