@@ -1,0 +1,148 @@
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- -----------------------------------------------------
+-- Schema mydb
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
+-- Schema mydb
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `mydb` DEFAULT CHARACTER SET utf8 ;
+USE `mydb` ;
+
+-- -----------------------------------------------------
+-- Table `mydb`.`category_info`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`category_info` (
+  `category` VARCHAR(40) NOT NULL,
+  `cl_activity` VARCHAR(40) NULL DEFAULT NULL,
+  `cm_activity` VARCHAR(40) NULL DEFAULT NULL,
+  `cs_activity` VARCHAR(40) NULL DEFAULT NULL,
+  PRIMARY KEY (`category`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`location`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`location` (
+  `lc_id` VARCHAR(16) NOT NULL,
+  `lc_name` VARCHAR(40) NULL DEFAULT NULL,
+  `lc_addr` VARCHAR(45) NULL DEFAULT NULL,
+  `lc_addr_road` VARCHAR(45) NULL DEFAULT NULL,
+  `lc_x` VARCHAR(45) NULL DEFAULT NULL,
+  `lc_y` VARCHAR(45) NULL DEFAULT NULL,
+  `lc_call_number` VARCHAR(45) NULL DEFAULT NULL,
+  `lc_url` VARCHAR(80) NULL DEFAULT NULL,
+  `lc_category` VARCHAR(45) NULL DEFAULT NULL,
+  PRIMARY KEY (`lc_id`),
+  INDEX `lc_category` (`lc_category` ASC) VISIBLE,
+  CONSTRAINT `location_ibfk_1`
+    FOREIGN KEY (`lc_category`)
+    REFERENCES `mydb`.`category_info` (`category`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`user`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`user` (
+  `user_id` VARCHAR(45) NOT NULL,
+  `mem_password` VARCHAR(45) NULL DEFAULT NULL,
+  `mem_username` VARCHAR(45) NULL DEFAULT NULL,
+  `mem_autologin` VARCHAR(45) NULL DEFAULT NULL,
+  `mem_sex_open` VARCHAR(45) NULL DEFAULT NULL,
+  `mem_receive_email` VARCHAR(45) NULL DEFAULT NULL,
+  `mem_receive_sns` VARCHAR(45) NULL DEFAULT NULL,
+  `mem_open_profile` VARCHAR(45) NULL DEFAULT NULL,
+  `mem_noti_allow` VARCHAR(45) NULL DEFAULT NULL,
+  `mem_denied` VARCHAR(45) NULL DEFAULT NULL,
+  `mem_email_cert` VARCHAR(45) NULL DEFAULT NULL,
+  `mem_lastlogin_datetime` VARCHAR(45) NULL DEFAULT NULL,
+  `mem_profile_content` VARCHAR(45) NULL DEFAULT NULL,
+  PRIMARY KEY (`user_id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`bucketlist`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`bucketlist` (
+  `bk_id` VARCHAR(45) NOT NULL,
+  `user_id` VARCHAR(45) NULL DEFAULT NULL,
+  `lc_id` VARCHAR(45) NULL DEFAULT NULL,
+  PRIMARY KEY (`bk_id`),
+  INDEX `fk_bucketlist_location_idx` (`lc_id` ASC) VISIBLE,
+  INDEX `fk_bucketlist_user_idx` (`user_id` ASC) VISIBLE,
+  CONSTRAINT `fk_bucketlist_location`
+    FOREIGN KEY (`lc_id`)
+    REFERENCES `mydb`.`location` (`lc_id`),
+  CONSTRAINT `fk_bucketlist_user`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `mydb`.`user` (`user_id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`friend`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`friend` (
+  `friend_id` VARCHAR(45) NOT NULL,
+  `user_id1` VARCHAR(45) NULL DEFAULT NULL,
+  `user_id2` VARCHAR(45) NULL DEFAULT NULL,
+  PRIMARY KEY (`friend_id`),
+  INDEX `fk_friend_user_idx` (`user_id1` ASC) VISIBLE,
+  INDEX `fk_friend_user1_idx` (`user_id2` ASC) VISIBLE,
+  CONSTRAINT `fk_friend_user`
+    FOREIGN KEY (`user_id1`)
+    REFERENCES `mydb`.`user` (`user_id`),
+  CONSTRAINT `fk_friend_user1`
+    FOREIGN KEY (`user_id2`)
+    REFERENCES `mydb`.`user` (`user_id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`review`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`review` (
+  `review_id` VARCHAR(45) NOT NULL,
+  `lc_id` VARCHAR(45) NULL DEFAULT NULL,
+  `review_rate` VARCHAR(45) NULL DEFAULT NULL,
+  `review_text` TEXT NULL DEFAULT NULL,
+  `review_time` DATE NOT NULL,
+  `sex` TINYINT(1) NOT NULL,
+  `age` INT NOT NULL,
+  PRIMARY KEY (`review_id`),
+  INDEX `fk_review_location_idx` (`lc_id` ASC) VISIBLE,
+  CONSTRAINT `fk_review_location`
+    FOREIGN KEY (`lc_id`)
+    REFERENCES `mydb`.`location` (`lc_id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`search`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`search` (
+  `search_id` VARCHAR(10) NOT NULL,
+  PRIMARY KEY (`search_id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
