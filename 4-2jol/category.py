@@ -1,12 +1,8 @@
-import requests
+#import Oing
 import pymysql, calendar, time, json
 import json
 import pandas as pd
 from pandas import json_normalize
-
-'''
-dataframe 출력 옵션
-'''
 
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
@@ -51,6 +47,11 @@ class KakaoLocalAPI:
                 FOREIGN KEY (lc_category) REFERENCES category_info (category) ON UPDATE CASCADE ON DELETE CASCADE);
             """
             curs.execute(sql)
+
+            sql = """
+            
+            """
+            curs.execute(sql)
         self.conn.commit()
 
         # REST API 키 설정
@@ -58,7 +59,7 @@ class KakaoLocalAPI:
         self.headers = {"Authorization": "KakaoAK {}".format("fdc883fda0ab9f3e7a2bec429fc989ae")}
 
         # 05 키워드 검색
-        self.URL_05 = "https://dapi.kakao.com/v2/local/search/keyword.json"
+        self.URL = "https://dapi.kakao.com/v2/local/search/keyword.json"
 
         # self 값 설정
 
@@ -81,7 +82,7 @@ class KakaoLocalAPI:
         if sort != None:
             params['sort'] = f"{sort}"
 
-        res = requests.get(self.URL_05, headers=self.headers, params=params)
+        res = Oing.get(self.URL, headers=self.headers, params=params)
         document = json.loads(res.text)
 
         return document
@@ -126,9 +127,9 @@ class KakaoLocalAPI:
         dfa = pd.DataFrame()
         dfb = pd.DataFrame()
 
-        for j in range(1, 3):
+        for j in range(1, 2):
             y = 36.5
-            for k in range(1, 3): # 바로바꿔용 3 으로 둘다!!!
+            for k in range(1, 2): # 바로바꿔용 3 으로 둘다!!!
                 print(x, y)
                 df = df.append(self.get_keyword_list(query, x, y, offset=0.5))
                 y += 0.5
@@ -196,11 +197,25 @@ class KakaoLocalAPI:
             self.conn.commit()
 
 
+    def read_search_info(self):
+        """DB의 search table에서 검색어 불러들이기"""
+        with self.conn.cursor() as curs:
+            sql = "SELECT * FROM search"
+            search = pd.read_sql(sql, self.conn)
 
-# 함수 실행
-query = '음식점'
-kakao = KakaoLocalAPI()
-dfa, dfb = kakao.search_all(query)
-print(dfb)
-kakao.replace_into_db(dfa)
-kakao.replace_into_db2(dfb)
+        return search
+
+
+    def search_info(self):
+        """search table 검색어를 토대로 프로그램 시작"""
+        search = self.read_search_info()
+        for idx in range(len(search)):
+            query = f'{search.search_id.values[idx]}'
+            print(query)
+            dfa, dfb = self.search_all(query)
+            self.replace_into_db(dfa)
+            self.replace_into_db2(dfb)
+
+if __name__ == '__main__':
+    dbu = KakaoLocalAPI()
+    dbu.search_info()
