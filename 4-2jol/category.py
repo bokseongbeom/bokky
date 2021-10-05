@@ -1,4 +1,4 @@
-#import Oing
+import requests
 import pymysql, calendar, time, json
 import json
 import pandas as pd
@@ -11,6 +11,7 @@ pd.set_option('display.width', 1000)
 
 class KakaoLocalAPI:
     """Kakao Local API 컨트롤러"""
+
     def __init__(self):
         """
         Rest API키 초기화 및 URL 설정
@@ -19,7 +20,7 @@ class KakaoLocalAPI:
         # MARIA DB CON 설정
         self.conn = pymysql.connect(host="database-1.coyhhlfg38do.ap-northeast-2.rds.amazonaws.com",
                                     port=3306, user="admin", password="noobokmizz",
-                                    db='mydb', charset='utf8')
+                                    db='NoworEver', charset='utf8')
 
         with self.conn.cursor() as curs:
             sql = """
@@ -48,10 +49,6 @@ class KakaoLocalAPI:
             """
             curs.execute(sql)
 
-            sql = """
-            
-            """
-            curs.execute(sql)
         self.conn.commit()
 
         # REST API 키 설정
@@ -63,12 +60,11 @@ class KakaoLocalAPI:
 
         # self 값 설정
 
-
     def search_keyword(self, query, x, y, offset=None, page=None, category_group_code=None,
                        radius=None, size=None, sort=None):
 
         params = {"query": f"{query}",
-                  'rect': f'{x},{y},{x+offset},{y+offset}'
+                  'rect': f'{x},{y},{x + offset},{y + offset}'
                   }
 
         if category_group_code != None:
@@ -82,12 +78,12 @@ class KakaoLocalAPI:
         if sort != None:
             params['sort'] = f"{sort}"
 
-        res = Oing.get(self.URL, headers=self.headers, params=params)
+        res = requests.get(self.URL, headers=self.headers, params=params)
         document = json.loads(res.text)
 
         return document
 
-    def get_keyword_list(self, query, x, y, offset = 0.01):
+    def get_keyword_list(self, query, x, y, offset=0.01):
         """전체 지역 검색"""
         page = 1
         df = pd.DataFrame()
@@ -97,9 +93,9 @@ class KakaoLocalAPI:
             search_count = self.search_keyword(query, x, y, offset=abc)['meta']['total_count']
 
             if search_count > 45:
-                abc = abc/2
-                x_end = x+abc
-                y_end = y+abc
+                abc = abc / 2
+                x_end = x + abc
+                y_end = y + abc
                 a = self.get_keyword_list(query, x, y, offset=abc)
                 b = self.get_keyword_list(query, x_end, y, offset=abc)
                 c = self.get_keyword_list(query, x, y_end, offset=abc)
@@ -112,12 +108,14 @@ class KakaoLocalAPI:
                 return df
 
             else:
-                if self.search_keyword(query, x, y, offset= abc, page=page)['meta']['is_end']:
-                    df = df.append(pd.json_normalize(self.search_keyword(query, x, y, offset=abc, page=page)['documents']))
+                if self.search_keyword(query, x, y, offset=abc, page=page)['meta']['is_end']:
+                    df = df.append(
+                        pd.json_normalize(self.search_keyword(query, x, y, offset=abc, page=page)['documents']))
                     return df
                 # 아니면 다음 페이지로 넘어가서 데이터 저장
                 else:
-                    df = df.append(pd.json_normalize(self.search_keyword(query, x, y, offset=abc, page=page)['documents']))
+                    df = df.append(
+                        pd.json_normalize(self.search_keyword(query, x, y, offset=abc, page=page)['documents']))
                     page += 1
 
     def search_all(self, query):
@@ -129,7 +127,7 @@ class KakaoLocalAPI:
 
         for j in range(1, 2):
             y = 36.5
-            for k in range(1, 2): # 바로바꿔용 3 으로 둘다!!!
+            for k in range(1, 2):  # 바로바꿔용 3 으로 둘다!!!
                 print(x, y)
                 df = df.append(self.get_keyword_list(query, x, y, offset=0.5))
                 y += 0.5
@@ -196,7 +194,6 @@ class KakaoLocalAPI:
                 curs.execute(sql)
             self.conn.commit()
 
-
     def read_search_info(self):
         """DB의 search table에서 검색어 불러들이기"""
         with self.conn.cursor() as curs:
@@ -204,7 +201,6 @@ class KakaoLocalAPI:
             search = pd.read_sql(sql, self.conn)
 
         return search
-
 
     def search_info(self):
         """search table 검색어를 토대로 프로그램 시작"""
@@ -215,6 +211,7 @@ class KakaoLocalAPI:
             dfa, dfb = self.search_all(query)
             self.replace_into_db(dfa)
             self.replace_into_db2(dfb)
+
 
 if __name__ == '__main__':
     dbu = KakaoLocalAPI()
