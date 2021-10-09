@@ -80,9 +80,9 @@ class NEWmem:
         """members TABLE에 REPLACE"""
         with self.conn.cursor() as curs:
             for idx in range(1,2):
-                mem_idnum = random.randint(0, 1000)
+                mem_idnum = random.randint(0, 100)
                 mem_userid = f"user{mem_idnum}"
-                bk_id = random.randint(0, 5000)
+                bk_id = random.randint(0, 500)
                 mem_nickname = RS.makeString()
                 mem_email = RS.makeEmail(mem_nickname)
                 mem_phone = RS.makePhonenum()

@@ -1,6 +1,5 @@
 import string
 import random
-from datetime import datetime
 
-today = datetime.today().strftime('%Y-%m-%d')
-print(today)
+for i in range(1, 10):
+    print(random.randint(1,10)/2)
