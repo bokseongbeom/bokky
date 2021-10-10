@@ -1,9 +1,7 @@
-import pymysql, calendar, time, json
-import json
+import pymysql
 import pandas as pd
 import random
-import RandomString as RS
-from datetime import datetime
+
 
 
 class NEWbkcontents:
@@ -26,7 +24,6 @@ class NEWbkcontents:
               KEY `ff_idx` (`lc_id`,`category`),
               KEY `fk_bkcontents_category_info_idx` (`category`),
               KEY `fk_bkcontents_location_idx` (`lc_id`,`lc_name`),
-              CONSTRAINT `fk_bkcontents_category_info` FOREIGN KEY (`category`) REFERENCES `category_info` (`category`),
               CONSTRAINT `fk_bkcontents_location` FOREIGN KEY (`lc_id`, `lc_name`) REFERENCES `location` (`lc_id`, `lc_name`),
               CONSTRAINT `fk_bkcontents_members1` FOREIGN KEY (`mem_idnum`, `mem_userid`, `bk_id`) REFERENCES `members` (`mem_idnum`, `mem_userid`, `bk_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -65,28 +62,27 @@ class NEWbkcontents:
         with self.conn.cursor() as curs:
             members = self.read_members()
             location = self.read_location()
-            category = self.read_category_info()
-            for idx in range(1,100):
-                mem_idnum = random.randint(0, 100)
-                mem_userid = f"user{mem_idnum}"
+            category_info = self.read_category_info()
+            for idx in range(0,5):
+                x = random.randint(0,len(members)-1)
+                y = random.randint(0,len(location)-1)
+                z = random.randint(0,len(category_info)-1)
+                mem_idnum = members['mem_idnum'][x]
+                mem_userid = members['mem_userid'][x]
+                bk_id = members['bk_id'][x]
+                lc_id = location['lc_id'][y]
+                lc_name = location['lc_name'][y]
+                lc_category = location['lc_category'][y]
 
 
-                sql = f"REPLACE INTO `members` (mem_idnum, " \
-                      f"mem_userid,bk_id ,mem_email ,mem_nickname," \
-                      f"mem_phone,mem_sex ,mem_birthday,mem_register_datetime," \
-                      f"mem_is_admin ,mem_following,mem_followed ,mem_password," \
-                      f"mem_profile_content,mem_username,mem_autologin," \
-                      f"mem_birthday_open,mem_sex_open,mem_receive_email," \
-                      f"mem_receive_sns,mem_open_profile,mem_noti_allow," \
-                      f"mem_denied,mem_email_cert,mem_lastlogin_datetime," \
-                      f"mem_adminmemo,mem_photo,bk_name,bk_open_bucketlist," \
-                      f"bk_share)VALUES ('{mem_idnum}', '{mem_userid}', '{bk_id}' ,'{mem_email}' " \
-                      f",'{mem_nickname}','{mem_phone}','{mem_sex}' ,'{mem_birthday}','{mem_register_datetime}' " \
-                      f",'{mem_is_admin}' ,'{mem_following}' ,'{mem_followed}' ,'{mem_password}' " \
-                      f",'{mem_profile_content}','{mem_username}','{mem_autologin}' ,'{mem_birthday_open}'" \
-                      f",'{mem_sex_open}' ,'{mem_receive_email}' ,'{mem_receive_sns}' ,'{mem_open_profile}' " \
-                      f",'{mem_noti_allow}' ,'{mem_denied}' ,'{mem_email_cert}' ,'{mem_lastlogin_datetime}' " \
-                      f",'{mem_adminmemo}' ,'{mem_photo}' ,'{bk_name}' ,'{bk_open_bucketlist}' ,'{bk_share}')"
+                print(f"'{mem_idnum}', " \
+                      f"'{mem_userid}', '{bk_id}' ,'{lc_id}' " \
+                      f",'{lc_name}','{lc_category}'")
+                sql = f"REPLACE INTO `bkcontents` " \
+                      f"(mem_idnum, mem_userid ,bk_id ,lc_id," \
+                      f"lc_name,category)VALUES ('{mem_idnum}', " \
+                      f"'{mem_userid}', '{bk_id}' ,'{lc_id}' " \
+                      f",'{lc_name}','{lc_category}')"
                 curs.execute(sql)
             self.conn.commit()
 

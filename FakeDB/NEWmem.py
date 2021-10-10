@@ -1,5 +1,4 @@
-import pymysql, calendar, time, json
-import json
+import pymysql
 import pandas as pd
 import random
 import RandomString as RS
@@ -92,7 +91,7 @@ class NEWmem:
                 mem_is_admin = 0
                 mem_following = 0
                 mem_followed = 0
-                mem_password = datetime.today().strftime('%Y-%m-%d')
+                mem_password = "0123"
                 mem_profile_content = 'NOPE'
                 mem_username = mem_nickname
                 mem_autologin = random.randint(0,1)
