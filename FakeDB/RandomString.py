@@ -40,8 +40,5 @@ def makePhonenum():
 
     return phonenum
 
-
-print(makeEmail('abdd'))
-
 if __name__ == '__main__':
     dbu = makeRandomString()

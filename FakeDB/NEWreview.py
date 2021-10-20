@@ -13,14 +13,14 @@ class NEWreview:
         with self.conn.cursor() as curs:
             sql = """
             CREATE TABLE IF NOT EXISTS `review` (
-              `location_lc_id` varchar(16) NOT NULL,
+              `lc_id` varchar(16) NOT NULL,
               `location_lc_name` varchar(40) NOT NULL,
               `sex` tinyint DEFAULT NULL,
               `review_text` varchar(45) DEFAULT NULL,
               `reveiw_rate` int NOT NULL,
               `age` date DEFAULT NULL,
-              PRIMARY KEY (`location_lc_id`,`location_lc_name`),
-              CONSTRAINT `fk_review_location1` FOREIGN KEY (`location_lc_id`, `location_lc_name`) REFERENCES `location` (`lc_id`, `lc_name`)
+              PRIMARY KEY (`lc_id`),
+              CONSTRAINT `fk_table1_location1` FOREIGN KEY (`lc_id`) REFERENCES `location` (`lc_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
             """
