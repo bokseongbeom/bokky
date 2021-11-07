@@ -11,11 +11,11 @@ class NEWmem:
         # MARIA DB CON 설정
         self.conn = pymysql.connect(host="database-1.coyhhlfg38do.ap-northeast-2.rds.amazonaws.com",
                                     port=3306, user="admin", password="noobokmizz",
-                                    db='mydb', charset='utf8')
+                                    db='mydb2', charset='utf8')
         with self.conn.cursor() as curs:
             sql = """
             CREATE TABLE IF NOT EXISTS `members` (
-              `mem_idnum` int NOT NULL,
+              `mem_idnum` int NOT NULL AUTO_INCREMENT,
               `mem_userid` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
               `bk_id` int NOT NULL,
               `mem_email` varchar(30) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
@@ -45,8 +45,8 @@ class NEWmem:
               `bk_name` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
               `bk_open_bucketlist` tinyint DEFAULT NULL,
               `bk_share` tinyint DEFAULT NULL,
-              PRIMARY KEY (`mem_idnum`,`bk_id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+              PRIMARY KEY (`mem_idnum`,`bk_id`,`mem_userid`)
+            ) ENGINE=InnoDB AUTO_INCREMENT=399 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
             """
             curs.execute(sql)
 
@@ -161,7 +161,7 @@ class NEWmem:
                         bk_id = count
                         count = count + 1
 
-                    sql = f"REPLACE INTO `members` (mem_idnum, " \
+                    sql = f"INSERT IGNORE INTO `members` (mem_idnum, " \
                           f"mem_userid,bk_id ,mem_email ,mem_nickname," \
                           f"mem_phone,mem_sex ,mem_birthday,mem_register_datetime," \
                           f"mem_is_admin ,mem_following,mem_followed ,mem_password," \

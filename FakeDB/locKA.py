@@ -15,38 +15,16 @@ class FillCategory:
     def Fillcategory(self):
         with self.conn.cursor() as curs:
 
-            sql = f"SELECT cl_activity as choice FROM category_info"
-            cl_category_list = pd.read_sql(sql, self.conn)
-            sql = f"SELECT cm_activity as choice FROM category_info"
-            cm_category_list = pd.read_sql(sql, self.conn)
-            sql = f"SELECT cs_activity as choice FROM category_info"
-            cs_category_list = pd.read_sql(sql, self.conn)
+            sql = f"SELECT * FROM category_info"
+            category_list = pd.read_sql(sql, self.conn)
 
-            cl_category_list = cl_category_list.drop_duplicates()
-            cm_category_list = cm_category_list.drop_duplicates()
-            cs_category_list = cs_category_list.drop_duplicates()
+            category_list = category_list.drop_duplicates()
+
+            for idx in range(len(category_list)):
+                category = category_list.choice.values[idx]
 
 
-            for idx in range(len(cl_category_list)):
-                category = cl_category_list.choice.values[idx]
-
-                category_id = '333' + f"{idx}"
-                sql = f"REPLACE INTO category_info ( category, category_id )VALUES ('{category}' , '{category_id}')"
-                print(sql)
-
-
-            for idx in range(len(cm_category_list)):
-                category = cm_category_list.choice.values[idx]
-
-                category_id = '555' + f"{idx}"
-                sql = f"REPLACE INTO category_info ( category, category_id )VALUES ('{category}' , '{category_id}')"
-                print(sql)
-
-            for idx in range(len(cs_category_list)):
-                category = cs_category_list.choice.values[idx]
-
-                category_id = '999' + f"{idx}"
-                sql = f"REPLACE INTO category_info ( category, category_id )VALUES ('{category}' , '{category_id}')"
+                sql = f"REPLACE INTO category_info ( category, category_id )VALUES ('{category}' , '{cl_activity}' , '{cm_activity}' , '{cs_activity}')"
                 print(sql)
                 curs.execute(sql)
 

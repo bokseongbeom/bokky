@@ -1,5 +1,5 @@
 #`idnew_table` int unsigned NOT NULL AUTO_INCREMENT,
-
+import string
 import requests
 import pymysql
 import json
@@ -18,7 +18,7 @@ class KakaoLocalAPI:
         # MARIA DB CON 설정
         self.conn = pymysql.connect(host="database-1.coyhhlfg38do.ap-northeast-2.rds.amazonaws.com",
                                     port=3306, user="admin", password="noobokmizz",
-                                    db='mydb', charset='utf8')
+                                    db='mydb2', charset='utf8')
 
         with self.conn.cursor() as curs:
             sql = """
@@ -28,7 +28,9 @@ class KakaoLocalAPI:
                 cl_activity VARCHAR(40), 
                 cm_activity VARCHAR(40), 
                 cs_activity VARCHAR(40),
-                PRIMARY KEY (category_id,category));
+                UNIQUE KEY `category` (category),
+                PRIMARY KEY (category_id, category)
+                );
             """
             curs.execute(sql)
 
@@ -44,6 +46,7 @@ class KakaoLocalAPI:
                 lc_url varchar(80) ,
                 lc_category int NOT NULL,
                 PRIMARY KEY (lc_id, lc_category),
+                UNIQUE KEY `lc_name` (`lc_id`),
                 FOREIGN KEY (lc_category) REFERENCES category_info (category_id) ON UPDATE CASCADE ON DELETE CASCADE);
             """
             curs.execute(sql)
@@ -52,6 +55,7 @@ class KakaoLocalAPI:
             CREATE TABLE IF NOT EXISTS search (
                 search_id int NOT NULL AUTO_INCREMENT,
                 search VARCHAR(10),
+                UNIQUE KEY `search` (`search`),
                 PRIMARY KEY (search_id, search));
             """
             curs.execute(sql)
@@ -143,15 +147,22 @@ class KakaoLocalAPI:
         '''전처리'''
         s = df['category_name'].str.split(">")
         df["place_name"] = df["place_name"].str.replace(pat=r'[^\w]', repl=r'', regex=True)
-        cs_activity = s.str[2]
-        cm_activity = s.str[1]
         cl_activity = s.str[0]
-        category = s.str[-1]
-
-        df['cs_activity'] = cs_activity
-        df['cm_activity'] = cm_activity
-        df['cl_activity'] = cl_activity
+        cm_activity = s.str[1]
+        cs_activity = s.str[2]
+        category = s.str[2].str.strip()
         df['category'] = category
+        if s.str[1] is None:
+            cm_activity = cl_activity
+            df['category'] = cl_activity
+        elif s.str[2] is None:
+            df['category'] = cm_activity
+            cs_activity = None
+
+        df['cs_activity'] = cs_activity.str.strip()
+        df['cm_activity'] = cm_activity.str.strip()
+        df['cl_activity'] = cl_activity.str.strip()
+
 
         df.drop(columns=['category_group_name', 'distance'], axis=1, inplace=True)
         df = df.rename(columns={'address_name': 'lc_addr', 'category_group_name': 'cs_activity',
@@ -165,6 +176,9 @@ class KakaoLocalAPI:
         dfa = dfa.drop_duplicates()
         dfb = dfb.drop_duplicates()
 
+
+
+
         return dfa, dfb
 
     def replace_into_db(self, df):
@@ -176,9 +190,9 @@ class KakaoLocalAPI:
                 cl_activity = df.cl_activity.values[idx]
                 cm_activity = df.cm_activity.values[idx]
                 cs_activity = df.cs_activity.values[idx]
-                sql = f"REPLACE INTO category_info ( category, cl_activity, cm_activity, " \
-                      f"cs_activity)VALUES ( '{category}', '{cl_activity}', " \
-                      f"'{cm_activity}', '{cs_activity}')"
+                sql = f"INSERT IGNORE INTO category_info (category,cl_activity,cm_activity, " \
+                      f"cs_activity)VALUES ('{category}','{cl_activity}'," \
+                      f"'{cm_activity}','{cs_activity}')"
                 curs.execute(sql)
             self.conn.commit()
 
@@ -205,8 +219,8 @@ class KakaoLocalAPI:
                 lc_category = search #### 여기 어칼까용
 
                 sql = f"REPLACE INTO location (lc_id, lc_name, lc_addr, lc_addr_road, lc_x, lc_y, lc_call_number," \
-                      f" lc_url, lc_category)VALUES ('{lc_id}', '{lc_name}', '{lc_addr}', '{lc_addr_road}', '{lc_x}', " \
-                      f"'{lc_y}', '{lc_call_number}', '{lc_url}', '{lc_category}')"
+                      f" lc_url, lc_category)VALUES ('{lc_id}','{lc_name}','{lc_addr}','{lc_addr_road}','{lc_x}'," \
+                      f"'{lc_y}','{lc_call_number}','{lc_url}','{lc_category}')"
                 curs.execute(sql)
             self.conn.commit()
 
@@ -224,7 +238,7 @@ class KakaoLocalAPI:
             searchlist = ['여행']
             for idx in searchlist:
                 search = idx
-                sql = f"REPLACE INTO search (search)VALUES ('{search}')"
+                sql = f"INSERT IGNORE INTO search (search)VALUES ('{search}')"
                 curs.execute(sql)
             self.conn.commit()
 
