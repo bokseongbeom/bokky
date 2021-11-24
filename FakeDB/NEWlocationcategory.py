@@ -18,7 +18,7 @@ class KakaoLocalAPI:
         # MARIA DB CON 설정
         self.conn = pymysql.connect(host="database-1.coyhhlfg38do.ap-northeast-2.rds.amazonaws.com",
                                     port=3306, user="admin", password="noobokmizz",
-                                    db='mydb2', charset='utf8')
+                                    db='mydb3', charset='utf8')
 
         with self.conn.cursor() as curs:
             sql = """
@@ -136,9 +136,9 @@ class KakaoLocalAPI:
         dfa = pd.DataFrame()
         dfb = pd.DataFrame()
 
-        for j in range(1, 2):
+        for j in range(0,4):
             y = 36.5
-            for k in range(1, 2):  # 바로바꿔용 3 으로 둘다!!!
+            for k in range(0,4):  # 바로바꿔용 3 으로 둘다!!!
                 print(x, y)
                 df = df.append(self.get_keyword_list(query, x, y, offset=0.5))
                 y += 0.5
@@ -235,7 +235,7 @@ class KakaoLocalAPI:
     def search_info(self):
         """search table 검색어를 토대로 프로그램 시작"""
         with self.conn.cursor() as curs:
-            searchlist = ['여행']
+            searchlist = ['여행','음식점']
             for idx in searchlist:
                 search = idx
                 sql = f"INSERT IGNORE INTO search (search)VALUES ('{search}')"

@@ -21,7 +21,9 @@ class FillCategory:
             category_list = category_list.drop_duplicates()
 
             for idx in range(len(category_list)):
-                category = category_list.choice.values[idx]
+                categor
+
+                y = category_list.choice.values[idx]
 
 
                 sql = f"REPLACE INTO category_info ( category, category_id )VALUES ('{category}' , '{cl_activity}' , '{cm_activity}' , '{cs_activity}')"

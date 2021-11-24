@@ -3,7 +3,6 @@ import pandas as pd
 import random
 
 
-
 class NEWbkcontents:
 
     def __init__(self):
@@ -13,7 +12,7 @@ class NEWbkcontents:
                                     db='mydb3', charset='utf8')
         with self.conn.cursor() as curs:
             sql = """
-            CREATE TABLE `review` (
+            CREATE TABLE IF NOT EXISTS `review` (
               `rv_comment` text,
               `rv_starrate` int DEFAULT NULL,
               `rv_time` datetime DEFAULT NULL,
@@ -22,8 +21,6 @@ class NEWbkcontents:
               `lc_id` varchar(16) NOT NULL,
               PRIMARY KEY (`mem_idnum`,`lc_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-            SELECT * FROM mydb2.review;
-                        
                         """
             curs.execute(sql)
 
@@ -38,10 +35,10 @@ class NEWbkcontents:
 
         return members
 
-    def read_location(self, x, y):
+    def read_location(self):
         """DB의 location table에서 pk 불러들이기"""
         with self.conn.cursor() as curs:
-            sql = f"SELECT * FROM location WHERE lc_x < {x + 0.05} and {x - 0.05} < lc_x and {y - 0.05} < lc_y and lc_y < {y + 0.05}"
+            sql = f"SELECT * FROM location"
             location = pd.read_sql(sql, self.conn)
 
         return location
@@ -50,10 +47,11 @@ class NEWbkcontents:
         """members TABLE에 REPLACE"""
         with self.conn.cursor() as curs:
             members = self.read_members()
-            location = self.read_location(126.4569,36.8272)
+            location = self.read_location()
 
-            p = 1000
+            p = 1000000
             for idx in range(p):
+                print("304")
                 x = random.randint(0, len(members)-1)
                 y = random.randint(0, len(location)-1)
                 mem_idnum = members['mem_idnum'][x]
@@ -66,7 +64,7 @@ class NEWbkcontents:
                 sql = f"REPLACE INTO `review` (rv_comment,rv_starrate,mem_idnum,mem_userid,lc_id)" \
                       f"VALUES ('{rv_comment}','{rv_starrate}','{mem_idnum}','{mem_userid}','{lc_id}')"
                 curs.execute(sql)
-            self.conn.commit()
+                self.conn.commit()
 
 
 

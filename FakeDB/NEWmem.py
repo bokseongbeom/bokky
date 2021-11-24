@@ -11,7 +11,7 @@ class NEWmem:
         # MARIA DB CON 설정
         self.conn = pymysql.connect(host="database-1.coyhhlfg38do.ap-northeast-2.rds.amazonaws.com",
                                     port=3306, user="admin", password="noobokmizz",
-                                    db='mydb2', charset='utf8')
+                                    db='mydb3', charset='utf8')
         with self.conn.cursor() as curs:
             sql = """
             CREATE TABLE IF NOT EXISTS `members` (
